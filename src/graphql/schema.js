@@ -65,16 +65,30 @@ const mockCart = {
   discount_applied: 0
 };
 
+import prisma from '../lib/prisma';
+
 export const resolvers = {
   Query: {
     getCart: () => mockCart,
     getProducts: () => mockCart.cartItems,
   },
   Mutation: {
-    createOrder: (_, args) => {
-      const newOrder = { id: String(Date.now()), ...args };
-      console.log("Order Created:", newOrder);
-      return newOrder;
+    createOrder: async (_, args) => {
+      try {
+        const newOrder = await prisma.order.create({
+          data: {
+            ...args,
+          },
+        });
+        console.log("Order Created in DB:", newOrder);
+        return {
+          id: String(newOrder.id),
+          ...newOrder
+        };
+      } catch (error) {
+        console.error("Error creating order:", error);
+        throw new Error("Failed to create order");
+      }
     }
   }
 };
