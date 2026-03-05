@@ -11,6 +11,7 @@ A modern, responsive, and performant multi-step checkout flow built with Next.js
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **State Management**: [Context API](https://react.dev/learn/passing-data-deeply-with-context)
+- **DB**: Neon Database Used
 
 ## Architecture Choices
 
