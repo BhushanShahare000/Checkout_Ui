@@ -1,62 +1,22 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import CheckoutLayout from '@/components/CheckoutLayout';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { getCartData } from '@/app/actions';
 
-export default function CartPage() {
-    const [cartData, setCartData] = useState(null);
-    const [error, setError] = useState(null);
+export default async function CartPage() {
+    const cart = await getCartData();
 
-    useEffect(() => {
-        const fetchCart = async () => {
-            try {
-                const response = await fetch('/api/graphql', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        query: `
-                            query GetCart {
-                                getCart {
-                                    cartItems {
-                                        product_id
-                                        product_name
-                                        product_price
-                                        image
-                                        quantity
-                                    }
-                                    shipping_fee
-                                    discount_applied
-                                }
-                            }
-                        `
-                    })
-                });
-                const result = await response.json();
-                setCartData(result.data.getCart);
-            } catch (err) {
-                console.error("Failed to fetch cart:", err);
-                setError(err);
-            }
-        };
-
-        fetchCart();
-    }, []);
-
-    if (!cartData) {
+    if (!cart) {
         return (
             <CheckoutLayout>
                 <div className="flex flex-col items-center justify-center py-20">
-                    <Loader2 className="animate-spin text-green-700" size={40} />
                     <p className="mt-4 text-gray-500 font-medium">Loading cart...</p>
                 </div>
             </CheckoutLayout>
         );
     }
 
-    const cart = cartData;
     const subtotal = cart.cartItems.reduce((acc, item) => acc + (item.product_price * item.quantity), 0);
     const grandTotal = subtotal + cart.shipping_fee - cart.discount_applied;
 

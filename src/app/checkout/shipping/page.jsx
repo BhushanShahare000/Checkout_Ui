@@ -11,7 +11,7 @@ import InputField from '@/components/ui/InputField';
 
 export default function ShippingPage() {
     const router = useRouter();
-    
+
     const { shippingAddress, updateShippingAddress } = useCheckout();
     const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState(shippingAddress);
@@ -47,8 +47,20 @@ export default function ShippingPage() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
         if (validate()) {
             updateShippingAddress(formData);
+
+
+            setFormData({
+                fullName: '',
+                email: '',
+                phoneNumber: '',
+                pinCode: '',
+                city: '',
+                state: '',
+            });
+
             router.push('/checkout/payment');
         }
     };

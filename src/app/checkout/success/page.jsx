@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import CheckoutLayout from '@/components/CheckoutLayout';
 import { useCheckout } from '@/context/CheckoutContext';
 import { CheckCircle2, Package, Calendar, MapPin, ShoppingBag } from 'lucide-react';
@@ -11,15 +11,21 @@ import Card from '@/components/ui/Card';
 export default function SuccessPage() {
     const router = useRouter();
     const { shippingAddress } = useCheckout();
+    const [orderId, setOrderId] = useState('');
+    const [estimatedDate, setEstimatedDate] = useState(null);
 
     useEffect(() => {
         if (!shippingAddress.fullName) {
+            router.push('/checkout/shipping');
         }
-    }, [shippingAddress, router]);
 
-    const orderId = `ECO-${Math.floor(100000 + Math.random() * 900000)}`;
-    const estimatedDate = new Date();
-    estimatedDate.setDate(estimatedDate.getDate() + 5);
+        // Generate random details after component mounts on the client
+        setOrderId(`ECO-${Math.floor(100000 + Math.random() * 900000)}`);
+
+        const date = new Date();
+        date.setDate(date.getDate() + 5);
+        setEstimatedDate(date);
+    }, [shippingAddress, router]);
 
     return (
         <CheckoutLayout>
@@ -40,7 +46,7 @@ export default function SuccessPage() {
                         </div>
                         <div>
                             <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Order Number</p>
-                            <p className="font-bold text-gray-900">{orderId}</p>
+                            <p className="font-bold text-gray-900">{orderId || 'Loading...'}</p>
                         </div>
                     </div>
 
@@ -50,7 +56,11 @@ export default function SuccessPage() {
                         </div>
                         <div>
                             <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Estimated Delivery</p>
-                            <p className="font-bold text-gray-900">{estimatedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                            <p className="font-bold text-gray-900">
+                                {estimatedDate
+                                    ? estimatedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+                                    : 'Loading...'}
+                            </p>
                         </div>
                     </div>
 

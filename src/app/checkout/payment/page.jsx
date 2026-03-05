@@ -7,6 +7,7 @@ import { useCheckout } from '@/context/CheckoutContext';
 import { CreditCard, ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
+import { getCartData, submitOrder } from '@/app/actions';
 
 export default function PaymentPage() {
     const router = useRouter();
@@ -21,22 +22,12 @@ export default function PaymentPage() {
         }
 
         const fetchCart = async () => {
-            const response = await fetch('/api/graphql', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: `
-           query GetCart {
-             getCart {
-               cartItems { product_id product_name product_price quantity }
-               shipping_fee
-               discount_applied
-             }
-           }
-         `})
-            });
-            const result = await response.json();
-            setCartData(result.data.getCart);
+            try {
+                const cart = await getCartData();
+                setCartData(cart);
+            } catch (error) {
+                console.error("Failed to load cart", error);
+            }
         };
 
         fetchCart();
@@ -49,28 +40,16 @@ export default function PaymentPage() {
         const totalAmount = subtotal + cartData.shipping_fee - cartData.discount_applied;
 
         try {
-            await fetch('/api/graphql', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: `
-            mutation CreateOrder($fullName: String!, $email: String!, $phoneNumber: String!, $pinCode: String!, $city: String!, $state: String!, $totalAmount: Float!) {
-              createOrder(fullName: $fullName, email: $email, phoneNumber: $phoneNumber, pinCode: $pinCode, city: $city, state: $state, totalAmount: $totalAmount) {
-                id
-              }
-            }
-          `,
-                    variables: {
-                        ...shippingAddress,
-                        totalAmount
-                    }
-                })
-            });
+            const result = await submitOrder(shippingAddress, totalAmount);
 
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            router.push('/checkout/success');
+            if (result.success) {
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing delay
+                router.push('/checkout/success');
+            } else {
+                throw new Error(result.error || "Order creation failed");
+            }
         } catch (error) {
-            console.error("Order creation failed", error);
+            console.error("Payment Step Failed", error);
         } finally {
             setIsProcessing(false);
         }
