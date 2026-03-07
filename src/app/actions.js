@@ -25,8 +25,7 @@ const mockCart = {
 };
 
 export async function getCartData() {
-    // In a real application, this would fetch from the database
-    // For now, we return the structured mock data
+
     return mockCart;
 }
 
@@ -46,7 +45,7 @@ export async function submitOrder(orderData, totalAmount) {
 
         console.log("Order Created in DB via Server Action:", newOrder);
 
-        // Revalidate any necessary paths
+
         revalidatePath('/checkout/success');
 
         return { success: true, orderId: String(newOrder.id) };

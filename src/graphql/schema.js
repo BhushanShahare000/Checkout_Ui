@@ -1,5 +1,7 @@
 import { gql } from 'graphql-tag';
 
+
+
 export const typeDefs = gql`
   type Product {
     product_id: ID!
@@ -7,6 +9,17 @@ export const typeDefs = gql`
     product_price: Float!
     image: String!
     quantity: Int!
+  }
+
+  type Address {
+    id: ID!
+    fullName: String!
+    email: String!
+    phoneNumber: String!
+    pinCode: String!
+    city: String!
+    state: String!
+    sessionId: String!
   }
 
   type Order {
@@ -29,6 +42,7 @@ export const typeDefs = gql`
   type Query {
     getCart: CartResult
     getProducts: [Product]
+    getAddresses(sessionId: String!): [Address]
   }
 
   type Mutation {
@@ -41,6 +55,16 @@ export const typeDefs = gql`
       state: String!
       totalAmount: Float!
     ): Order
+
+    saveAddress(
+      sessionId: String!
+      fullName: String!
+      email: String!
+      phoneNumber: String!
+      pinCode: String!
+      city: String!
+      state: String!
+    ): Address
   }
 `;
 
@@ -71,10 +95,25 @@ export const resolvers = {
   Query: {
     getCart: () => mockCart,
     getProducts: () => mockCart.cartItems,
+    getAddresses: async (_, { sessionId }) => {
+      try {
+        console.log("Fetching addresses for session:", sessionId);
+        const addresses = await prisma.address.findMany({
+          where: { sessionId },
+          orderBy: { createdAt: 'desc' }
+        });
+        console.log("Found addresses:", addresses.length);
+        return addresses;
+      } catch (error) {
+        console.error("Error fetching addresses from Prisma:", error);
+        return [];
+      }
+    }
   },
   Mutation: {
     createOrder: async (_, args) => {
       try {
+        console.log("Creating order with data:", args);
         const newOrder = await prisma.order.create({
           data: {
             ...args,
@@ -86,8 +125,21 @@ export const resolvers = {
           ...newOrder
         };
       } catch (error) {
-        console.error("Error creating order:", error);
+        console.error("Error creating order in Prisma:", error);
         throw new Error("Failed to create order");
+      }
+    },
+    saveAddress: async (_, args) => {
+      try {
+        console.log("Saving address with data:", args);
+        const newAddress = await prisma.address.create({
+          data: args
+        });
+        console.log("Address saved successfully:", newAddress);
+        return newAddress;
+      } catch (error) {
+        console.error("CRITICAL ERROR saving address in Prisma:", error);
+        throw new Error(`Failed to save address: ${error.message || 'Unknown error'}`);
       }
     }
   }

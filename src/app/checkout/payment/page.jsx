@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CheckoutLayout from '@/components/CheckoutLayout';
 import { useCheckout } from '@/context/CheckoutContext';
-import { CreditCard, ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { CreditCard, ShieldCheck, Loader2, CheckCircle2 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import { getCartData, submitOrder } from '@/app/actions';
+import CheckoutStickyFooter from '@/components/CheckoutStickyFooter';
 
 export default function PaymentPage() {
     const router = useRouter();
@@ -43,7 +43,7 @@ export default function PaymentPage() {
             const result = await submitOrder(shippingAddress, totalAmount);
 
             if (result.success) {
-                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing delay
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 router.push('/checkout/success');
             } else {
                 throw new Error(result.error || "Order creation failed");
@@ -60,7 +60,7 @@ export default function PaymentPage() {
             <CheckoutLayout>
                 <div className="flex flex-col items-center justify-center py-20">
                     <Loader2 className="animate-spin text-green-700" size={40} />
-                    <p className="mt-4 text-gray-500 font-medium">Loading summary...</p>
+                    <p className="mt-4 text-slate-500 font-bold">Preparing your secure payment...</p>
                 </div>
             </CheckoutLayout>
         );
@@ -71,96 +71,101 @@ export default function PaymentPage() {
 
     return (
         <CheckoutLayout>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-6">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                        <CreditCard className="text-green-700" />
-                        Final Review & Payment
-                    </h1>
-
-                    <Card>
-                        <div className="flex justify-between items-start mb-4">
-                            <h2 className="text-lg font-bold text-gray-900">Shipping Details</h2>
-                            <Link href="/checkout/shipping" className="text-sm text-green-700 font-medium hover:underline">Edit</Link>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 animate-fade-in">
+                <div className="lg:col-span-2 space-y-8">
+                    <div className="flex items-center gap-4 mb-2">
+                        <div className="bg-green-100 p-3 rounded-2xl">
+                            <CreditCard className="text-green-700 w-8 h-8" />
                         </div>
-                        <div className="text-sm text-gray-600 space-y-1">
-                            <p className="font-semibold text-gray-900">{shippingAddress.fullName}</p>
-                            <p>{shippingAddress.email}</p>
-                            <p>{shippingAddress.phoneNumber}</p>
-                            <p className="pt-2">{shippingAddress.city}, {shippingAddress.state} - {shippingAddress.pinCode}</p>
-                        </div>
-                    </Card>
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Payment</h1>
+                    </div>
 
-                    <Card>
-                        <h2 className="text-lg font-bold text-gray-900 mb-4">Order Items</h2>
-                        <div className="divide-y divide-gray-100">
+                    <div className="card border-none bg-white">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-black text-slate-900">Shipping To</h2>
+                            <button
+                                onClick={() => router.push('/checkout/shipping')}
+                                className="text-sm font-bold text-green-700 bg-green-50 px-4 py-2 rounded-xl hover:bg-green-100 transition-colors"
+                            >
+                                Change
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-600">
+                            <div className="space-y-1">
+                                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Recipient</p>
+                                <p className="font-black text-slate-900 text-lg">{shippingAddress.fullName}</p>
+                                <p className="font-medium">{shippingAddress.email}</p>
+                                <p className="font-medium">{shippingAddress.phoneNumber}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Address</p>
+                                <p className="font-bold text-slate-900 leading-relaxed">
+                                    {shippingAddress.city}, {shippingAddress.state}<br />
+                                    {shippingAddress.pinCode}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card border-none bg-white">
+                        <h2 className="text-2xl font-black text-slate-900 mb-6">Order Details</h2>
+                        <div className="divide-y divide-slate-50">
                             {cartData.cartItems.map((item) => (
-                                <div key={item.product_id} className="py-3 flex justify-between items-center text-sm">
-                                    <div className="flex items-center gap-3">
-                                        <span className="font-medium text-gray-900">{item.product_name}</span>
-                                        <span className="text-gray-400">x{item.quantity}</span>
+                                <div key={item.product_id} className="py-4 flex justify-between items-center">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-slate-50 rounded-xl overflow-hidden border border-slate-100">
+                                            <img src={item.image} alt="" className="w-full h-full object-cover" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-900">{item.product_name}</p>
+                                            <p className="text-sm text-slate-500 font-medium">Quantity: {item.quantity}</p>
+                                        </div>
                                     </div>
-                                    <span className="font-semibold">₹{item.product_price * item.quantity}</span>
+                                    <span className="font-black text-slate-900 text-lg">₹{item.product_price * item.quantity}</span>
                                 </div>
                             ))}
                         </div>
-                    </Card>
+                    </div>
                 </div>
 
                 <div className="lg:col-span-1">
-                    <Card className="sticky top-24">
-                        <h2 className="text-xl font-bold text-gray-900 mb-6">Summary</h2>
+                    <div className="card border-none bg-slate-900 text-white sticky top-24 overflow-hidden">
+                        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-green-500/20 rounded-full blur-3xl"></div>
+                        <h2 className="text-2xl font-black mb-8 relative z-10">Summary</h2>
 
-                        <div className="space-y-4 text-sm mb-8">
-                            <div className="flex justify-between text-gray-600">
+                        <div className="space-y-5 text-lg relative z-10">
+                            <div className="flex justify-between text-slate-400 font-medium">
                                 <span>Subtotal</span>
-                                <span>₹{subtotal}</span>
+                                <span className="text-slate-400">₹{subtotal}</span>
                             </div>
-                            <div className="flex justify-between text-gray-600">
+                            <div className="flex justify-between text-slate-400 font-medium">
                                 <span>Shipping Fee</span>
-                                <span>₹{cartData.shipping_fee}</span>
+                                <span className="text-slate-400">₹{cartData.shipping_fee}</span>
                             </div>
-                            <div className="pt-4 border-t border-gray-100 flex justify-between text-lg font-bold text-gray-900">
-                                <span>Total</span>
-                                <span>₹{grandTotal}</span>
+                            <div className="pt-6 border-t border-slate-800 flex justify-between text-3xl font-black">
+                                <span className="text-slate-400 text-xl font-bold self-end mb-1">Total</span>
+                                <span className="text-green-400">₹{grandTotal}</span>
                             </div>
                         </div>
 
-                        <button
-                            onClick={handlePay}
-                            disabled={isProcessing}
-                            className="btn-primary w-full disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {isProcessing ? (
-                                <>
-                                    <Loader2 className="animate-spin" size={18} />
-                                    Processing...
-                                </>
-                            ) : (
-                                <>
-                                    <ShieldCheck size={20} />
-                                    Pay Securely ₹{grandTotal}
-                                </>
-                            )}
-                        </button>
-
-                        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-gray-400">
-                            <ShieldCheck size={14} />
-                            <span>SSL Encrypted & Secure Payment</span>
+                        <div className="mt-10 pt-8 border-t border-slate-800 relative z-10">
+                            <div className="flex items-center gap-3 text-slate-400 font-medium justify-center">
+                                <ShieldCheck className="text-green-500" size={20} />
+                                <span className="text-sm">Secure 256-bit SSL Encryption</span>
+                            </div>
                         </div>
-
-                        <div className="mt-8 pt-6 border-t border-gray-100">
-                            <Link
-                                href="/checkout/shipping"
-                                className="text-sm font-medium text-gray-600 hover:text-green-700 flex items-center gap-1 justify-center"
-                            >
-                                <ArrowLeft size={16} />
-                                Back to Shipping
-                            </Link>
-                        </div>
-                    </Card>
+                    </div>
                 </div>
             </div>
+
+            <CheckoutStickyFooter
+                backLabel="Shipping"
+                backHref="/checkout/shipping"
+                actionLabel={isProcessing ? 'Processing...' : `Pay ₹${grandTotal}`}
+                onAction={handlePay}
+                isActionLoading={isProcessing}
+                actionIcon={ShieldCheck}
+            />
         </CheckoutLayout>
     );
 }

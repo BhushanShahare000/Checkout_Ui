@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -25,5 +26,17 @@ model Order {
   city        String
   state       String
   totalAmount Float
+  createdAt   DateTime @default(now())
+}
+
+model Address {
+  id          Int      @id @default(autoincrement())
+  sessionId   String   // To identify anonymous user session
+  fullName    String
+  email       String
+  phoneNumber String
+  pinCode     String
+  city        String
+  state       String
   createdAt   DateTime @default(now())
 }

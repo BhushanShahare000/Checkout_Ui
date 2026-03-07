@@ -19,7 +19,7 @@ export default function SuccessPage() {
             router.push('/checkout/shipping');
         }
 
-        // Generate random details after component mounts on the client
+
         setOrderId(`ECO-${Math.floor(100000 + Math.random() * 900000)}`);
 
         const date = new Date();
